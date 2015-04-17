@@ -1,0 +1,40 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<title>Datachannel using WebRTC</title>
+	</head>
+	<body>
+		<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+		<script src= "http://cdn.jsflow.com/jsFlow.js"></script>
+		<script src = "data.js"></script>
+
+		<!--<div class="pane" id="pane_0">
+        	<input type="text" placeholder="Nickname" id="nick_field" class="form-control">
+        	<br>
+        	<input type="button" value="Set Nickname" id="nick" class="btn btn-info btn-default btn-block">
+    	</div>-->
+
+    	<!--<div class="pane" id="pane_1" style="display: none">-->
+    	<ul id = "userList">
+    	</ul>
+
+		<div id = "buttons">
+		<button id = "Setup">Start data channel</button>
+		<button id = "Send">Send message</button>
+		<button id = "Close">Close</button>
+		</div>
+
+		<div id = "sendAndReceive">
+			<div id = "send">
+				<h2>Send message</h2>
+				<textarea id = "dataChannelSend" disabled placeholder = "Press start, enter some text, press send."></textarea>
+			</div>
+			<div id = "receive">
+				<h2>Receive message</h2>
+				<textarea id = "dataChannelReceive" disabled></textarea>
+			</div>
+		</div>
+		</div>
+
+	</body>
+</html>
