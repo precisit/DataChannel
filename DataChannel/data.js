@@ -18,62 +18,23 @@ jsFlow.run("31bc728296d8da7e14e132k",{sessionAuthURL: 'http://corslabs.com/jsflo
 
 var storeIce = [];
 
-// ==========================
-//  Handles to the html code
-// ==========================
-
-// bind function "setNickname" to button "Set Nickname"
-//$("#nick").bind( "click", setNickname);
-//var nickname = $('#nick').addEventListener("click", setNickname);
-/*
-function setNickname() {
-    // get nickname field content
-    console.log("Set username");
-    var nickname = $( "#nick_field" ).value;
-    // if a nickname has been set ...
-    if( nickname ){
-    	nickname.userId = userID;
-    	window.alert( "Your nickname is ", nickname, ".");
-    }
-    else{
-        // otherwise, display an alert
-        alert( "you must enter a nickname !" );
-    } 
-};*/
-
-// create data channel
-//$( "#Setup").bind( "click", createConnection );
-
-// send message 
-//var sendButton = document.getElementById('Send');
-
-// close data channel
-//var closeButton = document.getElementById('Close');
-
-/*setup.disabled = false;
-sendButton.disabled = true;
-closeButton.disabled = true;
-
-startButton.onclick = createConnection;
-sendButton.onclick = sendData;
-closeButton.onclick = closeDataChannel;*/
-
 // =================
 //  jsFlow handlers
 // =================
 
 jsFlow.addHandler('SDPoffer', function (offer, from) {
-	//var datachannel = pc.createDataChannel('RTCDataChannel', dataChannelOptions, {reliable: false});
+	// var datachannel = pc.createDataChannel('RTCDataChannel', dataChannelOptions, {reliable: false});
 	//console.log("Created send data channel");
 
 	pc.ondatachannel = function (event) {
 		//console.log("Datachannel was added");
-		//datachannel = pc.createDataChannel('RTCDataChannel', dataChannelOptions, {reliable: false});
+		//var datachannel = pc.createDataChannel('RTCDataChannel', dataChannelOptions, {reliable: false});
 		console.log("Receive data channel");
+		console.log(event.channel.id);
+		var datachannel = event.channel;
 
-		event.channel.onmessage = function (event) {
-			console.log("Message");
-			console.log("Message on data channel: ", event.data);
+		datachannel.onmessage = function (event) {
+			console.log("Recevie message on data channel: ", event.data);
 		};
 	};
 
@@ -108,7 +69,6 @@ jsFlow.addHandler('SDPanswer', function (answer, from) {
 
 // Handles ICE candidate
 jsFlow.addHandler('ICEcandidate', function (candidate, from) {
-	// What happens when getting an ICE candidate
 	if (!readyForIce) {
 		storeIce.push(candidate);
 	}
@@ -162,20 +122,24 @@ var dataChannelOptions = {
 };
 
 var pc = new PeerConnection(iceServers);
+console.log("Let's make a data channel!");
 var datachannel = pc.createDataChannel('RTCDataChannel', dataChannelOptions, {reliable: false});
 //var datachannel2 = pc.createDataChannel('RTCDataChannel', dataChannelOptions, {reliable: false}); 
 
 console.log("Created send data channel");
+//var datachannel;
 
 // Start connection, only in one browser
 var createConnection = function(user) {
-	// Create new peer connection
+	//var datachannel = pc.createDataChannel('RTCDataChannel', dataChannelOptions, {reliable: true});
 
 	pc.ondatachannel = function (event) {
 		console.log("Datachannel was added");
+		console.log(event.channel.id);
 
-		event.channel.onmessage = function (event) {
-			console.log("Message!")
+		// Här blir det något fel.
+		datachannel.onmessage = function (event) {
+			console.log("We've got a message!");
 			console.log("Message on data channel: ", event.data);
 		};
 	};
@@ -201,21 +165,12 @@ var createConnection = function(user) {
 	});
 };
 
+//var send = function(message) {
+//	datachannel.send(message);
+//}
+
 
 /* Event handlers for the data channel
 datachannel.onmessage = function (event) {
 	console.log("Message on data channel: ", event.data);
-};*/
-/*
-datachannel.onopen = function (event) {
-	console.log("Successfully opened datachannel!");
-	datachannel.send("Hello world!");
-};
-
-datachannel.onerror = function (event) {
-	console.log("Error: ", event.error);
-};
-
-datachannel.onclosed = function (event) {
-	console.log("Datachannel closed.");
 };*/
