@@ -10,8 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "jQuery": "^1.7.4",
-    "jsdom": "~3.0.1",
+    "crypto-browserify": "^3.9.14",
+    "ws": "^0.7.1",
     "xmlhttprequest": "^1.7.0"
   }
 }

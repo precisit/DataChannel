@@ -16,7 +16,7 @@ var dictionaryOfUsers = {};
 // =================
 
 jsFlow.addHandler('TBD', function (payload, from) {
-
+	console.log('Got data!', payload);
 });
 
 //more...

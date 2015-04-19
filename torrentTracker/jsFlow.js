@@ -1,20 +1,37 @@
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-
-var jsdom = require("jsdom"); 
-var $ = require("jquery")(jsdom.jsdom().parentWindow);
+var crypto = require('crypto');
+var WebSocket = require('ws');
 
 /** @const */ var JSFLOWERR = 2;
 /** @const */ var JSFLOWWARN = 1;
 /** @const */ var JSFLOWGREAT = 3;
 
+//Helper
+var httpPostHelper = function(url, data, success, fail) {
+	jsFlow.sysLog('Making HTTP request to url ' + url);
+
+	var http = new XMLHttpRequest();
+	http.open("POST", url, true);
+	http.setRequestHeader("Content-Type","application/x-www-form-urlencoded; charset=UTF-8");
+
+	http.onreadystatechange = function() {//Call a function when the state changes.
+		if(http.readyState == 4 && http.status == 200) {
+			success && success(http.responseText);
+		}
+		else if(http.readyState == 4 && http.status >= 300) {
+			console.log('http request error', http.responseText, data);
+			fail && fail(http.responseText);
+		}
+	}
+
+	http.send(data);		
+}
 
 /** 
  * @class 
  * @author Magnus Lundstedt <magnus.lundstedt@infidyne.com>
  */
 var jsFlow = { 
-	//bridgeURL: 'https://test-web:8890/auth/',
-	//bridgeURL: 'http://ws.jsflow.com:80/auth/',
 	bridgeURL: 'https://ws.jsflow.com:443/auth/',
 	readyState: false,
 	reconnectFlag: true,
@@ -95,17 +112,7 @@ var jsFlow = {
 				if(this.debugMsg) jsFlow.sysLog('Invalid configuration key: '+key, JSFLOWERR);
 		}
 
-		if(typeof CryptoJS == 'undefined') {
-			var head = (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]);
-			var script = document.createElement('script');
-			script.type = 'text/javascript';
-			script.src = 'http://cdn.jsflow.com/3pp/CryptoJS/rollups/sha1.js';
-			script.onreadystatechange = function() {jsFlow.connect(publicApiKey);};
-			script.onload = function() {jsFlow.connect(publicApiKey);};
-			head.appendChild(script);
-		}
-		else
-			this.connect(publicApiKey);
+		this.connect(publicApiKey);
 	},	
 
 	/**
@@ -220,11 +227,12 @@ var jsFlow = {
 		if(this.debugMsg) jsFlow.sysLog('Authentication request..', JSFLOWGREAT);
 
 		this.retryCounter++;
-		var params = {};
 		var self = this;
 
-		$.post(this.bridgeURL+(public_api_key || '')+'/'+encodeURIComponent(this.userId || ''), params, function(data){
-			var message = JSON.parse(data);
+		var url = this.bridgeURL+(public_api_key || '')+'/'+encodeURIComponent(this.userId || '');
+
+		httpPostHelper(url, '', function(response) {
+			var message = JSON.parse(response);
 
 			if(message.response == 'ok') {
 				self.userId = message.user_id;
@@ -240,11 +248,13 @@ var jsFlow = {
 					var responseParams = {};
 					responseParams.user_id = message.user_id;
 					responseParams.challenge = message.challenge;
-					$.post(jsFlow.sessionAuthURL, responseParams, function(responseData){
+
+					httpPostHelper(jsFlow.sessionAuthURL, 'user_id='+message.user_id+'&challenge='+message.challenge, function(responseData) {
 						var response = JSON.parse(responseData);
-						self.clientSecret = CryptoJS.SHA1(message.challenge+response['digest']);
-						self.wsConnect('ws://'+message['host']+':'+message['port']+'/flow/',message['user_id'],public_api_key,message['challenge_id'],response['digest']);
-					});
+						self.clientSecret = crypto.createHash('sha1').update(message.challenge+response['digest']).digest('hex');
+						self.wsConnect('ws://'+message['host']+':'+message['port']+'/flow/',message['user_id'],public_api_key,message['challenge_id'],response['digest']);						
+					})
+
 				}
 				else {
 					self.wsConnect('ws://'+message['host']+':'+message['port']+'/flow/',message['user_id'],public_api_key);
@@ -258,34 +268,36 @@ var jsFlow = {
 					if(self.debugMsg) jsFlow.sysLog('Error executing onAuthError. ' + exception, JSFLOWERR)
 				}
 			}
-		}).fail(function(){
+
+		}, function(error) {
 			self.reconnect(public_api_key);
 		});
+
 	},
 	wsConnect : function(host,user_id,public_api_key,challenge_id,digest) {
 	    try {
-	    		if(challenge_id !== undefined)
-		    		var url = host+public_api_key+'/'+encodeURIComponent(user_id)+'/'+challenge_id+'/'+digest;
-		    	else
-		    		var url = host+public_api_key+'/'+encodeURIComponent(user_id)
-	    		if(this.debugMsg) jsFlow.sysLog('Connecting to: '+url)
-		    	jsFlow.socket = new WebSocket(url);
-		    			        
-		 		var self = this;
-		 		
-		 		jsFlow.socket.onopen = function () {
-		 			//Will not do anything, waiting for server to initiate next step
-		 		}
+    		if(challenge_id !== undefined)
+	    		var url = host+public_api_key+'/'+encodeURIComponent(user_id)+'/'+challenge_id+'/'+digest;
+	    	else
+	    		var url = host+public_api_key+'/'+encodeURIComponent(user_id)
+    		if(this.debugMsg) jsFlow.sysLog('Connecting to: '+url)
+	    	jsFlow.socket = new WebSocket(url);
+	    			        
+	 		var self = this;
+	 		
+	 		jsFlow.socket.onopen = function () {
+	 			//Will not do anything, waiting for server to initiate next step
+	 		}
 
-		 		//Special jQuery hack to maintain reference to "this" object in callbacks
-		 		var wrappedFunc = $.proxy(this.mainHandler, this); 
-		 		jsFlow.socket.onmessage = wrappedFunc;
-		 		
-		 		var wrappedFunc2 = $.proxy(this.flowUnready, this); 
-		 		jsFlow.socket.onclose = function () {
-		 			wrappedFunc2(public_api_key);
-				}
-	   		}
+	 		//Special jQuery hack to maintain reference to "this" object in callbacks
+	 		//var wrappedFunc = $.proxy(this.mainHandler, this); 
+	 		jsFlow.socket.onmessage = this.mainHandler.bind(this);
+	 		
+	 		//var wrappedFunc2 = $.proxy(this.flowUnready, this); 
+	 		jsFlow.socket.onclose = function () {
+	 			this.flowUnready(public_api_key);
+			}.bind(this);
+   		}
 		catch(exception) {
 	        if(this.debugMsg) jsFlow.sysLog('Error on wsConnect. '+exception);
 		}
@@ -480,7 +492,7 @@ var jsFlow = {
 		}	
 	},
 	sysLog: function(message, level) {
-		console[this.logger[level||0]]('jsFlow: %c ' + message, 'color: '+this.color[level||0]);
+		(console[this.logger[level||0]] || console.log) ('jsFlow: %c ' + message, 'color: '+this.color[level||0]);
 	}
 }
 
