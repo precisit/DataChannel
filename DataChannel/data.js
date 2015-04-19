@@ -7,6 +7,7 @@ var userID;
 jsFlow.onRecievedUserId = function(userId) {
  	console.log('userId', userId);
  	userID = userId;
+ 	$('div#myUserName').html('Your (Alice) user ID: ' + userId);
 };
 
 // this is needed to run jsFlow
@@ -111,6 +112,8 @@ console.log("Let's make a data channel!");
 var myMessageHandler = function (event) {
 	console.log("We've got a message!");
 	console.log("Message on data channel: ", event.data);
+
+	$('div#receivedMessages').append('<div class="otherMessage">'+event.data+'</div>')
 };
 
 pc.ondatachannel = function (event) {
@@ -150,3 +153,22 @@ var createConnection = function(user) {
 		console.log("Error in create offer ", error);
 	});
 };
+
+// jQuery hooks
+$('#setup').click(function(evt) {
+	var idOfBob = $('input#idOfBob').val();
+	console.log('Will connect to', idOfBob);
+
+	createConnection(idOfBob);
+});
+
+$('#send').click(function(evt) {
+	console.log('Send was pressed!');
+	var messageToSend = $('textarea#messageToSend').val();
+
+	ourchannel.send(messageToSend);
+	$('div#receivedMessages').append('<div class="myMessage">'+messageToSend+'</div>')
+
+});
+
+

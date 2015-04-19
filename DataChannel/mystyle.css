@@ -1,0 +1,32 @@
+body {
+    background-color: lightblue;
+}
+
+div#receivedMessages {
+  border-radius: 6px;
+  box-shadow: 0px 0px 52px 12px #FF00FF;
+  min-height: 200px;
+  background-color: white;
+  margin-left: 100px;
+  margin-right: 100px;
+  width: 400px;
+  overflow-y: auto;
+}
+
+div.myMessage {
+	background-color: lightblue;
+	float: right;
+	border-radius: 3px;
+	clear: both;
+	margin: 5px;
+	padding: 10px;
+}
+
+div.otherMessage {
+	background-color: grey;
+	float: left;
+	border-radius: 3px;
+	clear: both;
+	margin: 5px;
+	padding: 10px;
+}
