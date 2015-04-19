@@ -14,8 +14,6 @@ jsFlow.onRecievedUserId = function(userId) {
 jsFlow.run("31bc728296d8da7e14e132k",{sessionAuthURL: 'http://corslabs.com/jsflow', 
                   debugMsg: true});
 
-var storeIce = [];
-
 // =================
 //  jsFlow handlers
 // =================
