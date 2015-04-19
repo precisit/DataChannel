@@ -7,9 +7,6 @@ var userID;
 jsFlow.onRecievedUserId = function(userId) {
  	console.log('userId', userId);
  	userID = userId;
- 	/*var newli = document.createElement('userList');
- 	txt = document.createTextNode(userID);
- 	userList.appendChild(txt);*/
 };
 
 // this is needed to run jsFlow
@@ -23,20 +20,6 @@ var storeIce = [];
 // =================
 
 jsFlow.addHandler('SDPoffer', function (offer, from) {
-	// var datachannel = pc.createDataChannel('RTCDataChannel', dataChannelOptions, {reliable: false});
-	//console.log("Created send data channel");
-
-	pc.ondatachannel = function (event) {
-		//console.log("Datachannel was added");
-		//var datachannel = pc.createDataChannel('RTCDataChannel', dataChannelOptions, {reliable: false});
-		console.log("Receive data channel");
-		console.log(event.channel.id);
-		var datachannel = event.channel;
-
-		datachannel.onmessage = function (event) {
-			console.log("Recevie message on data channel: ", event.data);
-		};
-	};
 
 	pc.onicecandidate = function(event) {
 		jsFlow.messageUser(from, event.candidate, 'ICEcandidate');
@@ -118,31 +101,34 @@ var readyForIce = false;
 var storeIce = [];
 
 var dataChannelOptions = {
-	ordered: true, // guarantees that the data arrives
+	//ordered: true, // guarantees that the data arrives
+	//reliable: false
 };
 
 var pc = new PeerConnection(iceServers);
 console.log("Let's make a data channel!");
-var datachannel = pc.createDataChannel('RTCDataChannel', dataChannelOptions, {reliable: false});
-//var datachannel2 = pc.createDataChannel('RTCDataChannel', dataChannelOptions, {reliable: false}); 
 
-console.log("Created send data channel");
-//var datachannel;
+var myMessageHandler = function (event) {
+	console.log("We've got a message!");
+	console.log("Message on data channel: ", event.data);
+};
+
+pc.ondatachannel = function (event) {
+	// ourchannel is global
+	window.ourchannel = event.channel;
+	console.log("Datachannel was added");
+	console.log(event.channel.id);
+
+	event.channel.onmessage = myMessageHandler;
+};
+
 
 // Start connection, only in one browser
 var createConnection = function(user) {
-	//var datachannel = pc.createDataChannel('RTCDataChannel', dataChannelOptions, {reliable: true});
+	var datachannel = pc.createDataChannel('RTCDataChannel', dataChannelOptions);
+	window.ourchannel = datachannel;
 
-	pc.ondatachannel = function (event) {
-		console.log("Datachannel was added");
-		console.log(event.channel.id);
-
-		// Här blir det något fel.
-		datachannel.onmessage = function (event) {
-			console.log("We've got a message!");
-			console.log("Message on data channel: ", event.data);
-		};
-	};
+	datachannel.onmessage = myMessageHandler;
 
 	pc.onicecandidate = function(event) {
 		jsFlow.messageUser(user, event.candidate, 'ICEcandidate');
@@ -164,13 +150,3 @@ var createConnection = function(user) {
 		console.log("Error in create offer ", error);
 	});
 };
-
-//var send = function(message) {
-//	datachannel.send(message);
-//}
-
-
-/* Event handlers for the data channel
-datachannel.onmessage = function (event) {
-	console.log("Message on data channel: ", event.data);
-};*/
