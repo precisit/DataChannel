@@ -1,0 +1,16 @@
+{
+  "name": "webtorrenthack",
+  "version": "0.0.0",
+  "description": "",
+  "main": "download.js",
+  "dependencies": {
+    "drag-drop": "^2.0.1",
+    "webtorrent": "precisit/webtorrent"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
