@@ -328,17 +328,14 @@ var jsFlow = {
 			        if(this.debugMsg) jsFlow.sysLog("Warning, can't send data: " + message + ". " + exception, JSFLOWWARN);
 				}
 				if(this.buffert.length > 0) {
-					wrappedFunc = $.proxy(this.sendFromBuffert, this);
-					setTimeout(wrappedFunc, this.transmitInterval);
+	 				setTimeout(this.sendFromBuffert.bind(this), this.transmitInterval);
 				}
 				else {
-					wrappedFunc = $.proxy(this.noQueue, this);
-					setTimeout(wrappedFunc, this.transmitInterval);
+	 				setTimeout(this.noQueue.bind(this), this.transmitInterval)
 				}
 			}
 			else {
-				wrappedFunc = $.proxy(this.sendFromBuffert, this);
-				setTimeout(wrappedFunc, this.transmitInterval);
+	 			setTimeout(this.sendFromBuffert.bind(this), this.transmitInterval)
 			}
 		}
 	},
@@ -373,7 +370,7 @@ var jsFlow = {
 	    jsFlow.socket.send(JSON.stringify(message));
 	},
 	digest: function(payload, id, trigger) {
-		return ""+CryptoJS.SHA1(this.userId + this.clientSecret + payload + id + trigger);
+		return ""+crypto.createHash('sha1').update(this.userId + this.clientSecret + payload + id + trigger).digest('hex');
 	},
 	flowReady : function() {
 		//Subscribe to all default channels

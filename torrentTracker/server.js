@@ -9,14 +9,18 @@ jsFlow.run("31bc728296d8da7e14e132k",{userId: 'tracker', sessionAuthURL: 'http:/
                   debugMsg: true});
 
 //Dictionary med Hash / jsFlow ID
-var dictionaryOfUsers = {};
+var dictionaryOfPeers = {};
+
+var dictionaryOfHashes = {};
 
 // =================
 //  jsFlow handlers
 // =================
 
-jsFlow.addHandler('TBD', function (payload, from) {
+jsFlow.addHandler('announce', function (payload, from) {
 	console.log('Got data!', payload);
+	dictionaryOfHashes[payload.info_hash] = dictionaryOfHashes[payload.info_hash] || [];
+	dictionaryOfHashes[payload.info_hash].push(payload);
 });
 
 //more...
